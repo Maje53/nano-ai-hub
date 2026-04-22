@@ -101,118 +101,105 @@ function App() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0f', color: '#fff', fontFamily: 'system-ui' }}>
 
-      {/* Fixed top-right leaderboard */}
-      <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100, width: '280px', background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '20px' }}>
-        <div style={{ fontWeight: 700, marginBottom: '6px', color: '#888', fontSize: '1rem' }}>🏆 Leaderboard</div>
-        <div style={{ color: '#555', fontSize: '0.85rem', marginBottom: '16px' }}>Top wallets by query count</div>
-        {leaderboard.length === 0
-          ? <div style={{ color: '#444', fontSize: '0.9rem', textAlign: 'center', padding: '12px' }}>No queries yet</div>
-          : leaderboard.map(([addr, count], i) => (
-            <div key={addr} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px', background: '#0a0a0f', borderRadius: '10px', marginBottom: '8px' }}>
-              <span style={{ width: '24px', textAlign: 'center', fontSize: '1rem', color: i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#555' }}>
-                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
-              </span>
-              <span style={{ flex: 1, color: '#aaa', fontFamily: 'monospace', fontSize: '0.88rem' }}>{addr.slice(0,6)}...{addr.slice(-4)}</span>
-              <span style={{ color: '#00d4ff', fontWeight: 700, fontSize: '0.9rem' }}>{count}</span>
-            </div>
-          ))
+
+      {/* Fixed top-right: Wallet + Stats + Leaderboard */}
+      <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100, width: '260px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Connect Wallet */}
+        {!wallet
+          ? <button onClick={connectWallet} style={{ width: '100%', padding: '11px 14px', background: 'linear-gradient(135deg, #00d4ff, #0099cc)', border: 'none', borderRadius: '12px', color: '#000', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>🦊 Connect Wallet</button>
+          : <div style={{ padding: '11px 14px', background: '#13131a', border: '1px solid #00d4ff44', borderRadius: '12px', color: '#00d4ff', fontSize: '0.85rem' }}>✓ Connected: {wallet.slice(0,6)}...{wallet.slice(-4)}</div>
         }
+        {/* Faucet + ArcScan */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" style={{ padding: '9px 10px', background: '#13131a', border: '1px solid #33aa6644', borderRadius: '10px', color: '#44cc88', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none', textAlign: 'center' }}>💧 Faucet</a>
+          <a href="https://testnet.arcscan.app" target="_blank" rel="noreferrer" style={{ padding: '9px 10px', background: '#13131a', border: '1px solid #0099cc44', borderRadius: '10px', color: '#0099cc', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none', textAlign: 'center' }}>🔗 ArcScan</a>
+        </div>
+        {/* Stats */}
+        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '12px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {[
+            { label: 'Total Queries', value: txHistory.length },
+            { label: 'Total Spent',   value: `$${txHistory.reduce((s, tx) => s + (tx.price || 0.001), 0).toFixed(3)}` },
+            { label: 'Total Tokens',  value: txHistory.reduce((s, tx) => s + (tx.tokens || 0), 0) },
+          ].map(stat => (
+            <div key={stat.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: '#0a0a0f', borderRadius: '8px' }}>
+              <span style={{ color: '#666', fontSize: '0.8rem' }}>{stat.label}</span>
+              <span style={{ color: '#00d4ff', fontWeight: 800, fontSize: '0.95rem' }}>{stat.value}</span>
+            </div>
+          ))}
+        </div>
+        {/* Leaderboard */}
+        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '12px', padding: '14px' }}>
+          <div style={{ fontWeight: 700, marginBottom: '4px', color: '#888', fontSize: '0.9rem' }}>🏆 Leaderboard</div>
+          <div style={{ color: '#555', fontSize: '0.78rem', marginBottom: '12px' }}>Top wallets by query count</div>
+          {leaderboard.length === 0
+            ? <div style={{ color: '#444', fontSize: '0.82rem', textAlign: 'center', padding: '8px' }}>No queries yet</div>
+            : leaderboard.map(([addr, count], i) => (
+              <div key={addr} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: '#0a0a0f', borderRadius: '8px', marginBottom: '6px' }}>
+                <span style={{ width: '20px', textAlign: 'center', fontSize: '0.9rem', color: i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#555' }}>
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                </span>
+                <span style={{ flex: 1, color: '#aaa', fontFamily: 'monospace', fontSize: '0.8rem' }}>{addr.slice(0,6)}...{addr.slice(-4)}</span>
+                <span style={{ color: '#00d4ff', fontWeight: 700, fontSize: '0.85rem' }}>{count}</span>
+              </div>
+            ))
+          }
+        </div>
       </div>
 
-      {/* Fixed bottom-left badge */}
-      <div style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: 100, display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          padding: '6px 16px', borderRadius: '999px',
-          border: `1px solid ${arcPulse ? '#00d4ff88' : '#00d4ff33'}`,
-          background: arcPulse ? '#00d4ff0a' : '#0a0a0f',
-          transition: 'all 1.2s ease',
-          boxShadow: arcPulse ? '0 0 16px #00d4ff22' : 'none',
-        }}>
-          <span style={{ fontSize: '1rem' }}>⚡</span>
-          <span style={{ color: '#00d4ff', fontWeight: 600, fontSize: '0.95rem', letterSpacing: '0.05em' }}>Powered by Arc</span>
-        </div>
-        <div style={{ fontSize: '0.8rem', color: '#444' }}>
-          Built by <a href="https://x.com/0xMaje" target="_blank" rel="noreferrer" style={{ color: '#ff8c00', textDecoration: 'none', fontWeight: 600 }}>Maje</a>
-        </div>
+
+      {/* Fixed bottom-right: Built by Maje */}
+      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 100, fontSize: '0.85rem', color: '#444' }}>
+        Built by <a href="https://x.com/0xMaje" target="_blank" rel="noreferrer" style={{ color: '#ff8c00', textDecoration: 'none', fontWeight: 600 }}>Maje</a>
       </div>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '32px 24px' }}>
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
 
-          <h1 style={{ fontSize: '4rem', fontWeight: 800, background: 'linear-gradient(135deg, #00d4ff, #0099cc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0 0 48px 0' }}>NanoAI</h1>
-          <p style={{ color: '#888', margin: '0 0 24px 0' }}>
+          <h1 style={{ fontSize: '4rem', fontWeight: 800, background: 'linear-gradient(135deg, #00d4ff, #0099cc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0 0 16px 0' }}>NanoAI</h1>
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '6px 16px', borderRadius: '999px',
+              border: `1px solid ${arcPulse ? '#00d4ff88' : '#00d4ff33'}`,
+              background: arcPulse ? '#00d4ff0a' : 'transparent',
+              transition: 'all 1.2s ease',
+              boxShadow: arcPulse ? '0 0 16px #00d4ff22' : 'none',
+            }}>
+              <span style={{ fontSize: '1rem' }}>⚡</span>
+              <span style={{ color: '#00d4ff', fontWeight: 600, fontSize: '0.95rem', letterSpacing: '0.05em' }}>Powered by Arc</span>
+            </div>
+          </div>
+          <p style={{ color: '#888', margin: '0 0 16px 0' }}>
             Every question costs <b style={{ color: '#00d4ff' }}>${selectedModel.price.toFixed(3)} USDC</b> — instant payment on Arc Testnet
           </p>
-
-          {/* Wallet row */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            {!wallet
-              ? <button onClick={connectWallet} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #00d4ff, #0099cc)', border: 'none', borderRadius: '12px', color: '#000', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem' }}>Connect Wallet</button>
-              : <div style={{ padding: '8px 16px', background: '#13131a', border: '1px solid #00d4ff44', borderRadius: '12px', color: '#00d4ff', fontSize: '0.9rem' }}>Connected: {wallet.slice(0,6)}...{wallet.slice(-4)}</div>
-            }
-            <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" style={{ padding: '10px 18px', background: '#13131a', border: '1px solid #33aa6644', borderRadius: '12px', color: '#44cc88', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', cursor: 'pointer' }}>💧 Faucet</a>
-            <a href="https://testnet.arcscan.app" target="_blank" rel="noreferrer" style={{ padding: '10px 18px', background: '#13131a', border: '1px solid #0099cc44', borderRadius: '12px', color: '#0099cc', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none' }}>🔗 ArcScan</a>
-          </div>
         </div>
 
-        {/* Stats Bar */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-          {[
-            { label: 'Total Queries', value: txHistory.length },
-            { label: 'Total Spent',   value: `$${txHistory.reduce((s, tx) => s + (tx.price || 0.001), 0).toFixed(3)}` },
-            { label: 'Total Tokens',  value: txHistory.reduce((s, tx) => s + (tx.tokens || 0), 0) },
-          ].map(stat => (
-            <div key={stat.label} style={{ background: '#13131a', border: '1px solid #222', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#00d4ff' }}>{stat.value}</div>
-              <div style={{ color: '#666', fontSize: '0.8rem', marginTop: '4px' }}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* How it works */}
-        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
-          <div style={{ color: '#666', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px' }}>How it works</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-            {[
-              { n: '1', icon: '🦊', title: 'Connect Wallet', desc: 'Link MetaMask to Arc Testnet' },
-              { n: '2', icon: '⚡', title: 'Ask & Pay', desc: '$0.001 USDC per question, on-chain' },
-              { n: '3', icon: '🤖', title: 'Get AI Answer', desc: 'Instant response powered by Claude' },
-            ].map(step => (
-              <div key={step.n} style={{ background: '#0a0a0f', border: '1px solid #1a1a2a', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>{step.icon}</div>
-                <div style={{ display: 'inline-block', background: '#00d4ff22', color: '#00d4ff', fontWeight: 700, fontSize: '0.7rem', borderRadius: '999px', padding: '2px 8px', marginBottom: '8px' }}>Step {step.n}</div>
-                <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>{step.title}</div>
-                <div style={{ color: '#555', fontSize: '0.78rem', lineHeight: 1.4 }}>{step.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Model Selector */}
-        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '20px', marginBottom: '24px' }}>
-          <div style={{ color: '#666', fontSize: '0.75rem', marginBottom: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Model</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            {Object.entries(MODELS).map(([key, m]) => (
-              <button key={key} onClick={() => setModel(key)} style={{
-                padding: '16px', background: model === key ? '#0a1a2a' : '#0a0a0f',
-                border: `2px solid ${model === key ? '#00d4ff' : '#222'}`,
-                borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
-              }}>
-                <div style={{ fontWeight: 700, color: model === key ? '#00d4ff' : '#888', marginBottom: '4px' }}>{m.label}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: '#555', fontSize: '0.75rem' }}>{m.tag}</span>
-                  <span style={{ color: model === key ? '#00d4ff' : '#555', fontWeight: 800, fontSize: '1rem' }}>${m.price.toFixed(3)}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Ask Box */}
-        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
-          <textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder="Ask your question..." disabled={loading} style={{ width: '100%', minHeight: '120px', background: '#0a0a0f', border: '1px solid #333', borderRadius: '12px', color: '#fff', fontSize: '1rem', padding: '16px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }} />
+        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '24px', marginBottom: '16px' }}>
+          {/* 1. Textarea */}
+          <textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder="Ask your question..." disabled={loading} style={{ width: '100%', minHeight: '120px', background: '#0a0a0f', border: '1px solid #333', borderRadius: '12px', color: '#fff', fontSize: '1rem', padding: '16px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }} />
+          {/* 2. Select Model */}
+          <div style={{ background: '#0a0a0f', border: '1px solid #1a1a1a', borderRadius: '10px', padding: '10px', marginBottom: '12px' }}>
+            <div style={{ color: '#555', fontSize: '0.62rem', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Model</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              {Object.entries(MODELS).map(([key, m]) => (
+                <button key={key} onClick={() => setModel(key)} style={{
+                  padding: '8px 10px', background: model === key ? '#0a1a2a' : '#13131a',
+                  border: `2px solid ${model === key ? '#00d4ff' : '#222'}`,
+                  borderRadius: '8px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: model === key ? '#00d4ff' : '#888', marginBottom: '2px' }}>{m.label}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#555', fontSize: '0.67rem' }}>{m.tag}</span>
+                    <span style={{ color: model === key ? '#00d4ff' : '#555', fontWeight: 800, fontSize: '0.82rem' }}>${m.price.toFixed(3)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* 3. Ask button */}
           <button onClick={handleAsk} disabled={loading || !question.trim() || !wallet} style={{ width: '100%', padding: '14px', background: loading || !question.trim() || !wallet ? '#333' : 'linear-gradient(135deg, #00d4ff, #0099cc)', border: 'none', borderRadius: '12px', color: '#000', fontSize: '1rem', fontWeight: 700, cursor: loading || !question.trim() || !wallet ? 'not-allowed' : 'pointer' }}>
             {loading ? 'Processing...' : `Ask · $${selectedModel.price.toFixed(3)} USDC`}
           </button>
