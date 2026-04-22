@@ -7,6 +7,8 @@ function App() {
   const [error, setError] = useState('')
   const [txHistory, setTxHistory] = useState([])
   const [wallet, setWallet] = useState('')
+  const [marginCost, setMarginCost] = useState('')
+  const [marginRevenue, setMarginRevenue] = useState('')
 
   const connectWallet = async () => {
     if (!window.ethereum) { setError('MetaMask not found!'); return }
@@ -46,11 +48,27 @@ const res = await fetch(apiUrl, {
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, background: 'linear-gradient(135deg, #00d4ff, #0099cc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: '0 0 8px 0' }}>NanoAI</h1>
         <p style={{ color: '#888', margin: '0 0 16px 0' }}>Every question costs <b style={{ color: '#00d4ff' }}>$0.001 USDC</b> — instant payment on Arc Testnet</p>
+        <a href="https://testnet.arcscan.app" target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginBottom: '16px', color: '#0099cc', fontSize: '0.85rem', textDecoration: 'none', border: '1px solid #0099cc44', borderRadius: '8px', padding: '4px 12px' }}>🔗 ArcScan Testnet Explorer</a>
+        <br />
         {!wallet
           ? <button onClick={connectWallet} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #00d4ff, #0099cc)', border: 'none', borderRadius: '12px', color: '#000', fontWeight: 700, cursor: 'pointer' }}>Connect Wallet</button>
           : <div style={{ display: 'inline-block', padding: '8px 16px', background: '#13131a', border: '1px solid #00d4ff44', borderRadius: '12px', color: '#00d4ff' }}>Connected: {wallet.slice(0,6)}...{wallet.slice(-4)}</div>
         }
       </div>
+      {/* Stats Bar */}
+      <div style={{ maxWidth: '700px', margin: '0 auto 32px auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        {[
+          { label: 'Total Queries', value: txHistory.length },
+          { label: 'Total Spent', value: `$${(txHistory.length * 0.001).toFixed(3)}` },
+          { label: 'Total Tokens', value: txHistory.reduce((s, tx) => s + (tx.tokens || 0), 0) },
+        ].map(stat => (
+          <div key={stat.label} style={{ background: '#13131a', border: '1px solid #222', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#00d4ff' }}>{stat.value}</div>
+            <div style={{ color: '#666', fontSize: '0.8rem', marginTop: '4px' }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
       <div style={{ maxWidth: '700px', margin: '0 auto' }}>
         <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
           <textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder="Ask your question..." disabled={loading} style={{ width: '100%', minHeight: '120px', background: '#0a0a0f', border: '1px solid #333', borderRadius: '12px', color: '#fff', fontSize: '1rem', padding: '16px', resize: 'vertical', outline: 'none', boxSizing: 'border-box', marginBottom: '16px' }} />
@@ -65,6 +83,37 @@ const res = await fetch(apiUrl, {
             <div style={{ color: '#ddd', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{answer}</div>
           </div>
         )}
+        {/* Margin Calculator */}
+        <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
+          <div style={{ fontWeight: 700, marginBottom: '16px', color: '#888' }}>Margin Calculator</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div>
+              <label style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginBottom: '6px' }}>Cost ($)</label>
+              <input type="number" value={marginCost} onChange={e => setMarginCost(e.target.value)} placeholder="0.00" style={{ width: '100%', background: '#0a0a0f', border: '1px solid #333', borderRadius: '8px', color: '#fff', padding: '10px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginBottom: '6px' }}>Revenue ($)</label>
+              <input type="number" value={marginRevenue} onChange={e => setMarginRevenue(e.target.value)} placeholder="0.00" style={{ width: '100%', background: '#0a0a0f', border: '1px solid #333', borderRadius: '8px', color: '#fff', padding: '10px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          {marginCost && marginRevenue && (() => {
+            const cost = parseFloat(marginCost), rev = parseFloat(marginRevenue)
+            const profit = rev - cost
+            const margin = rev !== 0 ? ((profit / rev) * 100).toFixed(2) : 0
+            const positive = profit >= 0
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                {[{ label: 'Profit', value: `$${profit.toFixed(4)}`, good: positive }, { label: 'Margin', value: `${margin}%`, good: positive }, { label: 'ROI', value: `${cost !== 0 ? ((profit / cost) * 100).toFixed(1) : 0}%`, good: positive }].map(r => (
+                  <div key={r.label} style={{ background: '#0a0a0f', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: r.good ? '#00d4ff' : '#ff6666' }}>{r.value}</div>
+                    <div style={{ color: '#555', fontSize: '0.75rem', marginTop: '4px' }}>{r.label}</div>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
+        </div>
+
         {txHistory.length > 0 && (
           <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '24px' }}>
             <div style={{ fontWeight: 700, marginBottom: '16px', color: '#888' }}>Transaction History ({txHistory.length})</div>
