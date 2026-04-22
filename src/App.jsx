@@ -1,4 +1,14 @@
 import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
+
+console.log('[Supabase] VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL)
+console.log('[Supabase] VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? '*** (set)' : '(not set)')
+
+const supabase = import.meta.env.VITE_SUPABASE_URL
+  ? createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
+  : null
+
+console.log('[Supabase] client:', supabase ? 'initialized' : 'null — env vars missing')
 
 const MODELS = {
   haiku:  { label: 'Claude Haiku',  price: 0.001, priceHex: '0x38D7EA4C68000', tag: 'Fast · Cheap' },
@@ -16,6 +26,7 @@ function App() {
   })
   const [wallet, setWallet] = useState('')
   const [arcPulse, setArcPulse] = useState(false)
+  const [leaderboard, setLeaderboard] = useState([])
 
   useEffect(() => {
     localStorage.setItem('nanoai_txHistory', JSON.stringify(txHistory))
@@ -25,6 +36,23 @@ function App() {
     const id = setInterval(() => setArcPulse(p => !p), 1200)
     return () => clearInterval(id)
   }, [])
+
+  const fetchLeaderboard = async () => {
+    if (!supabase) return
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('wallet')
+    if (error) { console.error('[Supabase] fetch error:', error); return }
+    if (!data) return
+    console.log('[Supabase] fetched rows:', data.length)
+    const counts = data.reduce((acc, row) => {
+      acc[row.wallet] = (acc[row.wallet] || 0) + 1
+      return acc
+    }, {})
+    setLeaderboard(Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5))
+  }
+
+  useEffect(() => { fetchLeaderboard() }, [])
 
   const connectWallet = async () => {
     if (!window.ethereum) { setError('MetaMask not found!'); return }
@@ -52,6 +80,14 @@ function App() {
       const data = await res.json()
       setAnswer(data.answer)
       setTxHistory(prev => [{ id: Date.now(), question: question.slice(0, 40), time: new Date().toLocaleTimeString(), tokens: data.tokens, txHash, wallet, model, price: selected.price }, ...prev])
+      if (supabase) {
+        const { error: insertError } = await supabase
+          .from('transactions')
+          .insert({ wallet, tx_hash: txHash, model, price: selected.price })
+        if (insertError) console.error('[Supabase] insert error:', insertError)
+        else console.log('[Supabase] insert ok:', { wallet, tx_hash: txHash, model, price: selected.price })
+      }
+      fetchLeaderboard()
       setQuestion('')
     } catch (err) {
       setError(err.message)
@@ -59,14 +95,6 @@ function App() {
       setLoading(false)
     }
   }
-
-  const leaderboard = Object.entries(
-    txHistory.reduce((acc, tx) => {
-      if (!tx.wallet) return acc
-      acc[tx.wallet] = (acc[tx.wallet] || 0) + 1
-      return acc
-    }, {})
-  ).sort((a, b) => b[1] - a[1]).slice(0, 5)
 
   const selectedModel = MODELS[model]
 
