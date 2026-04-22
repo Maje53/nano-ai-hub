@@ -10,6 +10,14 @@ const supabase = import.meta.env.VITE_SUPABASE_URL
 
 console.log('[Supabase] client:', supabase ? 'initialized' : 'null — env vars missing')
 
+const ARC_TESTNET = {
+  chainId: '0x4cef52',        // 5042002 decimal — Arc Testnet
+  chainName: 'Arc Testnet',
+  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+  rpcUrls: ['https://rpc.arc.testnet.circle.com'],
+  blockExplorerUrls: ['https://testnet.arcscan.app'],
+}
+
 const MODELS = {
   haiku:  { label: 'Claude Haiku',  price: 0.001, priceHex: '0x38D7EA4C68000', tag: 'Fast · Cheap' },
   sonnet: { label: 'Claude Sonnet', price: 0.002, priceHex: '0x71AFD498D0000', tag: 'Smarter · Deeper' },
@@ -56,6 +64,27 @@ function App() {
 
   const connectWallet = async () => {
     if (!window.ethereum) { setError('MetaMask not found!'); return }
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: ARC_TESTNET.chainId }],
+      })
+    } catch (switchErr) {
+      if (switchErr.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [ARC_TESTNET],
+          })
+        } catch (addErr) {
+          setError('Failed to add Arc Testnet: ' + addErr.message)
+          return
+        }
+      } else {
+        setError('Failed to switch to Arc Testnet: ' + switchErr.message)
+        return
+      }
+    }
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     setWallet(accounts[0])
   }

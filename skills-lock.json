@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "use-arc": {
+      "source": "circlefin/skills",
+      "sourceType": "github",
+      "computedHash": "dfd429962197a08347f150c058ec0ae3294ea03facd545ec2b0a84a27eb98564"
+    },
+    "use-usdc": {
+      "source": "circlefin/skills",
+      "sourceType": "github",
+      "computedHash": "63bfcf3764e8e1e596c0196790d13f37d98291b67019f369f21c938ca7839d11"
+    }
+  }
+}
