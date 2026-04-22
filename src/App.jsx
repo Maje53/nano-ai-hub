@@ -13,8 +13,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem('nanoai_txHistory', JSON.stringify(txHistory))
   }, [txHistory])
-  const [marginCost, setMarginCost] = useState('')
-  const [marginRevenue, setMarginRevenue] = useState('')
 
   const connectWallet = async () => {
     if (!window.ethereum) { setError('MetaMask not found!'); return }
@@ -89,35 +87,68 @@ const res = await fetch(apiUrl, {
             <div style={{ color: '#ddd', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{answer}</div>
           </div>
         )}
-        {/* Margin Calculator */}
+        {/* Gas Comparison */}
         <div style={{ background: '#13131a', border: '1px solid #222', borderRadius: '16px', padding: '24px', marginBottom: '24px' }}>
-          <div style={{ fontWeight: 700, marginBottom: '16px', color: '#888' }}>Margin Calculator</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-            <div>
-              <label style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginBottom: '6px' }}>Cost ($)</label>
-              <input type="number" value={marginCost} onChange={e => setMarginCost(e.target.value)} placeholder="0.00" style={{ width: '100%', background: '#0a0a0f', border: '1px solid #333', borderRadius: '8px', color: '#fff', padding: '10px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+          <div style={{ fontWeight: 700, marginBottom: '4px', color: '#888' }}>Why $0.001 Payments Need Arc</div>
+          <div style={{ color: '#555', fontSize: '0.8rem', marginBottom: '20px' }}>Gas cost vs. $0.001 payment</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Ethereum */}
+            <div style={{ background: '#0a0a0f', border: '1px solid #ff444433', borderRadius: '12px', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '1.2rem' }}>⟠</span>
+                <span style={{ fontWeight: 700, color: '#aaa' }}>Ethereum</span>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ color: '#555', fontSize: '0.75rem', marginBottom: '2px' }}>Gas per tx</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ff6666' }}>~$2.50</div>
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ color: '#555', fontSize: '0.75rem', marginBottom: '2px' }}>Lost to gas</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ff6666' }}>99.96%</div>
+              </div>
+              <div style={{ background: '#1a0a0a', borderRadius: '8px', padding: '10px', fontSize: '0.8rem', color: '#ff6666', textAlign: 'center' }}>
+                You pay $2.50 to send $0.001
+              </div>
+              {/* Loss bar */}
+              <div style={{ marginTop: '14px' }}>
+                <div style={{ height: '6px', background: '#1a0a0a', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ width: '99.96%', height: '100%', background: '#ff4444', borderRadius: '3px' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.7rem', color: '#555' }}>
+                  <span>gas</span><span>payment</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label style={{ color: '#666', fontSize: '0.8rem', display: 'block', marginBottom: '6px' }}>Revenue ($)</label>
-              <input type="number" value={marginRevenue} onChange={e => setMarginRevenue(e.target.value)} placeholder="0.00" style={{ width: '100%', background: '#0a0a0f', border: '1px solid #333', borderRadius: '8px', color: '#fff', padding: '10px', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }} />
+
+            {/* Arc */}
+            <div style={{ background: '#0a0a0f', border: '1px solid #00d4ff44', borderRadius: '12px', padding: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '1.2rem' }}>⚡</span>
+                <span style={{ fontWeight: 700, color: '#00d4ff' }}>Arc</span>
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ color: '#555', fontSize: '0.75rem', marginBottom: '2px' }}>Gas per tx</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00d4ff' }}>~$0.0004</div>
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ color: '#555', fontSize: '0.75rem', marginBottom: '2px' }}>Margin kept</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00d4ff' }}>60%</div>
+              </div>
+              <div style={{ background: '#0a1a1a', borderRadius: '8px', padding: '10px', fontSize: '0.8rem', color: '#00d4ff', textAlign: 'center' }}>
+                You keep $0.0006 of $0.001
+              </div>
+              {/* Margin bar */}
+              <div style={{ marginTop: '14px' }}>
+                <div style={{ height: '6px', background: '#1a1a1a', borderRadius: '3px', overflow: 'hidden', display: 'flex', gap: '2px' }}>
+                  <div style={{ width: '40%', height: '100%', background: '#ff4444', borderRadius: '3px 0 0 3px' }} />
+                  <div style={{ width: '60%', height: '100%', background: '#00d4ff', borderRadius: '0 3px 3px 0' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.7rem', color: '#555' }}>
+                  <span>gas (40%)</span><span>margin (60%)</span>
+                </div>
+              </div>
             </div>
           </div>
-          {marginCost && marginRevenue && (() => {
-            const cost = parseFloat(marginCost), rev = parseFloat(marginRevenue)
-            const profit = rev - cost
-            const margin = rev !== 0 ? ((profit / rev) * 100).toFixed(2) : 0
-            const positive = profit >= 0
-            return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {[{ label: 'Profit', value: `$${profit.toFixed(4)}`, good: positive }, { label: 'Margin', value: `${margin}%`, good: positive }, { label: 'ROI', value: `${cost !== 0 ? ((profit / cost) * 100).toFixed(1) : 0}%`, good: positive }].map(r => (
-                  <div key={r.label} style={{ background: '#0a0a0f', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: r.good ? '#00d4ff' : '#ff6666' }}>{r.value}</div>
-                    <div style={{ color: '#555', fontSize: '0.75rem', marginTop: '4px' }}>{r.label}</div>
-                  </div>
-                ))}
-              </div>
-            )
-          })()}
         </div>
 
         {txHistory.length > 0 && (
