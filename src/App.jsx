@@ -17,7 +17,7 @@ function App() {
 
     try {
       // Backend'e sor
-      const response = await fetch('http://localhost:3001/api/ask', {
+      const response = await fetch('/api/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
@@ -78,7 +78,7 @@ function App() {
           ⚡ NanoAI
         </h1>
         <p style={{ color: '#888', fontSize: '1rem', margin: 0 }}>
-          Her soru <strong style={{ color: '#00d4ff' }}>$0.001 USDC</strong> — Arc Testnet üzerinde anında ödeme
+          Every question costs <strong style={{ color: '#00d4ff' }}>$0.001 USDC</strong> — instant payment on Arc Testnet
         </p>
       </div>
 
