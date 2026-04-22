@@ -24,7 +24,8 @@ function App() {
         method: 'eth_sendTransaction',
         params: [{ from: wallet, to: '0xCf87Ae43a6460ba1A780b9D297700784caA7c02f', value: '0x38D7EA4C68000' }],
       })
-      const res = await fetch('http://localhost:3001/api/ask', {
+      const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001/api/ask' : '/api/ask'
+const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
