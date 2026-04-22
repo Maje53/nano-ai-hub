@@ -10,21 +10,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { question } = req.body;
+    const { question, model } = req.body;
 
     if (!question) {
       return res.status(400).json({ error: 'Soru boş olamaz' });
     }
 
+    const modelMap = { haiku: 'claude-haiku-4-5-20251001', sonnet: 'claude-sonnet-4-6' }
+    const claudeModel = modelMap[model] || 'claude-haiku-4-5-20251001'
+
     const message = await anthropic.messages.create({
-      model: 'claude-opus-4-5',
+      model: claudeModel,
       max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: question,
-        },
-      ],
+      system: 'Respond in plain text only. Do not use markdown formatting, bullet points, headers, bold, italics, or any other markup. Write naturally as if in conversation.',
+      messages: [{ role: 'user', content: question }],
     });
 
     const answer = message.content[0].text;
