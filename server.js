@@ -28,15 +28,14 @@ app.post('/api/ask', async (req, res) => {
     }
 
     // Claude'a sor
+    const modelMap = { haiku: 'claude-haiku-4-5-20251001', sonnet: 'claude-sonnet-4-6' }
+    const model = modelMap[req.body.model] || 'claude-haiku-4-5-20251001'
+
     const message = await anthropic.messages.create({
-      model: 'claude-opus-4-5',
+      model,
       max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: question,
-        },
-      ],
+      system: 'Respond in plain text only. Do not use markdown formatting, bullet points, headers, bold, italics, or any other markup. Write naturally as if in conversation.',
+      messages: [{ role: 'user', content: question }],
     });
 
     const answer = message.content[0].text;
