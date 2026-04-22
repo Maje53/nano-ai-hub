@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function App() {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [txHistory, setTxHistory] = useState([])
+  const [txHistory, setTxHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('nanoai_txHistory')) || [] } catch { return [] }
+  })
   const [wallet, setWallet] = useState('')
+
+  useEffect(() => {
+    localStorage.setItem('nanoai_txHistory', JSON.stringify(txHistory))
+  }, [txHistory])
   const [marginCost, setMarginCost] = useState('')
   const [marginRevenue, setMarginRevenue] = useState('')
 
